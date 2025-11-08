@@ -1,0 +1,46 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:edit="clr-namespace:TimeTracker.Desktop.EditEntry"
+    x:Class="TimeTracker.Desktop.EditEntry.EditTimeEntryWindow"
+    x:DataType="edit:EditTimeEntryViewModel"
+    Width="420"
+    Height="360"
+    Title="Edit Time Entry"
+    CanResize="False"
+    x:CompileBindings="False">
+  <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16" Margin="16">
+    <TextBlock Text="Adjust the times and description for the selected entry." />
+
+    <Grid Grid.Row="1" RowDefinitions="Auto,Auto" RowSpacing="12">
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Start" FontWeight="SemiBold" />
+          <TextBox Text="{Binding StartText, Mode=TwoWay}" Watermark="yyyy-MM-dd HH:mm" ToolTip.Tip="Accepts local date time or time only (HH:mm)" />
+        </StackPanel>
+        <StackPanel Spacing="8" Grid.Column="1">
+          <TextBlock Text="End" FontWeight="SemiBold" />
+          <TextBox Text="{Binding EndText, Mode=TwoWay}" Watermark="yyyy-MM-dd HH:mm" ToolTip.Tip="Accepts local date time or time only (HH:mm)" />
+        </StackPanel>
+      </Grid>
+
+      <StackPanel Grid.Row="1" Spacing="8">
+        <TextBlock Text="Description" FontWeight="SemiBold" />
+        <TextBox
+            Text="{Binding NotesText, Mode=TwoWay}"
+            AcceptsReturn="True"
+            Watermark="Optional details"
+            MinHeight="80"
+            TextWrapping="Wrap" />
+      </StackPanel>
+    </Grid>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="#D06C6C" IsVisible="{Binding HasError}" VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+        <Button Content="Cancel" Click="OnCancelClicked" />
+        <Button Content="Save" IsDefault="True" Click="OnSaveClicked" />
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Window>

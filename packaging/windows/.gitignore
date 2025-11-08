@@ -1,0 +1,6 @@
+publish/
+*.wixobj
+*.wixpdb
+*.msi
+CliFiles.wxs
+DesktopFiles.wxs

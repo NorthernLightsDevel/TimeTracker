@@ -1,0 +1,21 @@
+{
+    // Drop this fragment into your Waybar config and adjust paths as needed.
+    "custom/timetracker": {
+        "interval": 1,
+        "return-type": "json",
+        "exec": "/usr/bin/timetracker-waybar status",
+        "exec-if": "command -v /usr/bin/timetracker-waybar >/dev/null",
+        "format": "{icon} {text}",
+        "on-click": "/usr/bin/timetracker-waybar toggle",
+        "on-click-right": "/usr/bin/timetracker-waybar stop",
+        "on-click-middle": "/usr/bin/timetracker-waybar project-menu",
+        "on-scroll-up": "/usr/bin/timetracker-waybar prompt-note",
+        "on-scroll-down": "/usr/bin/timetracker-waybar comment --clear",
+        "format-icons": {
+            "running": "",
+            "paused": "",
+            "stopped": "",
+            "default": ""
+        }
+    }
+}

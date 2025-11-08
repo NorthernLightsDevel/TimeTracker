@@ -1,0 +1,57 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Class="TimeTracker.Desktop.DailyEntryRowView">
+  <UserControl.Styles>
+    <Style Selector="UserControl Border">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="Margin" Value="0,4" />
+    </Style>
+    <Style Selector="UserControl:running Border">
+      <Setter Property="Background" Value="#263C2B" />
+    </Style>
+    <Style Selector="UserControl TextBlock.project">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="UserControl TextBlock.meta">
+      <Setter Property="Foreground" Value="#9B9B9B" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border BorderBrush="#303030" BorderThickness="0,0,0,1">
+    <Grid ColumnDefinitions="2*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12">
+      <StackPanel>
+        <TextBlock Text="{Binding ProjectName}" Classes="project" />
+        <TextBlock Text="{Binding NotesDisplay}" Classes="meta" IsVisible="{Binding HasNotes}" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+        <TextBlock Text="Start" Classes="meta" />
+        <TextBlock Text="{Binding StartDisplay}" />
+      </StackPanel>
+      <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+        <TextBlock Text="End" Classes="meta" />
+        <TextBlock Text="{Binding EndDisplay}" />
+      </StackPanel>
+      <StackPanel Grid.Column="3" HorizontalAlignment="Right">
+        <TextBlock Text="Duration" Classes="meta" />
+        <TextBlock Text="{Binding DurationDisplay}" />
+      </StackPanel>
+      <StackPanel Grid.Column="3" Grid.Row="1" HorizontalAlignment="Right">
+        <TextBlock Text="Rounded" Classes="meta" />
+        <TextBlock Text="{Binding RoundedDurationDisplay}" />
+      </StackPanel>
+      <Button Grid.Column="4"
+              Grid.RowSpan="2"
+              Content="Delete"
+              HorizontalAlignment="Right"
+              Command="{Binding DataContext.DeleteEntryCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+              CommandParameter="{Binding}"
+              IsEnabled="{Binding CanDelete}"
+              Padding="8,4"
+              Margin="12,0,0,0" />
+    </Grid>
+  </Border>
+</UserControl>

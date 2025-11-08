@@ -1,0 +1,21 @@
+[Unit]
+Description=TimeTracker Local API
+After=network.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+StateDirectory=timetracker
+CacheDirectory=timetracker
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5058
+Environment=TIMETRACKER_DB_PATH=/var/lib/timetracker/timetracker.db
+Environment=Database__Provider=Sqlite
+Environment=DOTNET_BUNDLE_EXTRACT_BASE_DIR=/var/cache/timetracker
+WorkingDirectory=/usr/lib/timetracker/api
+ExecStart=/usr/lib/timetracker/api/TimeTracker.Api
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target

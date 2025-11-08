@@ -1,0 +1,30 @@
+# Waybar styling for the custom TimeTracker module.
+# Drop this alongside your Waybar config and import it from `style.css` via
+# `@import "timetracker.css";`.
+
+#custom-timetracker {
+    padding: 0 8px;
+    font-weight: 500;
+    font-family: "JetBrainsMono Nerd Font", "FiraCode Nerd Font", monospace;
+}
+
+#custom-timetracker.timetracker-running {
+    color: #a6e3a1;
+}
+
+#custom-timetracker.timetracker-paused {
+    color: #fab387;
+}
+
+#custom-timetracker.timetracker-stopped,
+#custom-timetracker.timetracker-error {
+    color: #f38ba8;
+}
+
+#custom-timetracker .timetracker-icon {
+    margin-right: 6px;
+}
+
+#custom-timetracker .timetracker-project {
+    opacity: 0.8;
+}

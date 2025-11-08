@@ -1,0 +1,22 @@
+<!-- src/TimeTracker.Desktop/App.axaml -->
+<Application
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:fluent="clr-namespace:Avalonia.Themes.Fluent;assembly=Avalonia.Themes.Fluent"
+    x:Class="TimeTracker.Desktop.App"
+    RequestedThemeVariant="Light">
+
+  <Application.Styles>
+    <fluent:FluentTheme/>
+    <Styles>
+      <Style Selector="TextBlock.timer">
+        <Setter Property="FontFamily" Value="Consolas, Menlo, monospace"/>
+        <Setter Property="FontSize" Value="28"/>
+      </Style>
+      <Style Selector="TextBlock.caption">
+        <Setter Property="Opacity" Value="0.7"/>
+        <Setter Property="FontSize" Value="12"/>
+      </Style>
+    </Styles>
+  </Application.Styles>
+</Application>

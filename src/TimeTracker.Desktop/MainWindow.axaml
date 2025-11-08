@@ -1,0 +1,181 @@
+<Window
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
+    xmlns:reporting="clr-namespace:TimeTracker.Desktop.Reporting"
+    xmlns:views="clr-namespace:TimeTracker.Desktop"
+    x:Class="TimeTracker.Desktop.MainWindow"
+    Width="900" Height="540"
+    MinWidth="720" MinHeight="420"
+    Title="TimeTracker"
+    x:CompileBindings="False">
+  <Window.KeyBindings>
+    <KeyBinding Command="{Binding ExitCommand}" Gesture="Ctrl+Q" />
+  </Window.KeyBindings>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- Header -->
+    <Border BorderThickness="0,0,0,1" Padding="16" Background="#1d1d1d" Opacity="0.96">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Text="TimeTracker" FontSize="20" FontWeight="SemiBold" Foreground="White" />
+          <TextBlock Text="Local Waybar Companion" Classes="caption" Foreground="#CCCCCC" />
+        </StackPanel>
+        <TextBlock Grid.Column="1"
+                   Text="{Binding StatusMessage}"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   Foreground="#F0F0F0"
+                   Classes="caption" />
+      </Grid>
+    </Border>
+
+    <!-- Main content -->
+    <TabControl Grid.Row="1" Margin="16">
+      <TabItem Header="Timer">
+        <Grid RowDefinitions="Auto,*" RowSpacing="16">
+          <Border Padding="16" CornerRadius="12" BorderThickness="1" BorderBrush="#3A3A3A">
+            <Grid ColumnDefinitions="2.4*,3*,1.4*" ColumnSpacing="16" RowDefinitions="Auto,Auto" RowSpacing="12">
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="Project" FontWeight="SemiBold" />
+                <ComboBox ItemsSource="{Binding Projects}"
+                          SelectedItem="{Binding SelectedProject}"
+                          IsEnabled="{Binding HasProjects}"
+                          HorizontalAlignment="Stretch"
+                          MinWidth="200">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                  <ComboBox.SelectionBoxItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                  </ComboBox.SelectionBoxItemTemplate>
+                </ComboBox>
+                <TextBlock Text="Add a customer/project to get started."
+                           IsVisible="{Binding HasNoProjects}"
+                           Classes="caption"
+                           Margin="0,6,0,0"
+                           Foreground="#888888" />
+                <Button Content="Manage Projects"
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Left"
+                        Click="OnManageProjectsClicked" />
+              </StackPanel>
+
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="Notes" FontWeight="SemiBold" />
+                <TextBox Text="{Binding Notes, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         Height="80"
+                         Watermark="Optional session notes"
+                         TextWrapping="Wrap"
+                         MaxLength="256" />
+              </StackPanel>
+
+              <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                <TextBlock Text="Elapsed" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                <TextBlock Text="{Binding ElapsedDisplay}"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Right" />
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+                  <Button Content="Start"
+                          Command="{Binding StartCommand}"
+                          MinWidth="72" />
+                  <Button Content="Pause"
+                          Command="{Binding PauseCommand}"
+                          MinWidth="72" />
+                  <Button Content="Resume"
+                          Command="{Binding ResumeCommand}"
+                          MinWidth="72" />
+                  <Button Content="Stop"
+                          Command="{Binding StopCommand}"
+                          MinWidth="72" />
+                </StackPanel>
+              </StackPanel>
+
+              <Border Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" Background="#222" CornerRadius="8" Padding="10">
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                  <TextBlock Text="Status:" FontWeight="SemiBold" Foreground="#F0F0F0" />
+                  <TextBlock Text="{Binding SessionStatus}" FontWeight="SemiBold" Foreground="#F0F0F0" />
+                  <TextBlock Text="•" FontSize="18" Foreground="#666" />
+                  <TextBlock Text="{Binding SelectedProject.DisplayName}" Foreground="#DDDDDD" />
+                  <TextBlock Text="•" FontSize="18" Foreground="#666" />
+                  <TextBlock Text="Running" Foreground="#AFD275" IsVisible="{Binding IsRunning}" />
+                  <TextBlock Text="Paused" Foreground="#F2C335" IsVisible="{Binding IsPaused}" />
+                  <TextBlock Text="Idle" Foreground="#F08080" IsVisible="{Binding IsIdle}" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Border>
+
+          <Border Grid.Row="1" Padding="16" BorderThickness="1" CornerRadius="12" BorderBrush="#3A3A3A">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+          <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+            <Button Content="&lt;"
+                    Command="{Binding PreviousDayCommand}"
+                    MinWidth="80" />
+            <TextBlock Text="{Binding SelectedDateDisplay}"
+                       FontWeight="SemiBold"
+                       FontSize="16" />
+            <Button Content="&gt;"
+                    Command="{Binding NextDayCommand}"
+                    IsEnabled="{Binding CanNavigateForward}"
+                    MinWidth="80" />
+            <Button Content="Edit Selected"
+                    Margin="12,0,0,0"
+                    IsEnabled="{Binding CanEditSelectedEntry}"
+                    Click="OnEditEntryClicked" />
+            <Button Content="Delete Selected"
+                    Margin="12,0,0,0"
+                    Command="{Binding DeleteEntryCommand}"
+                    CommandParameter="{Binding SelectedEntry}"
+                    IsEnabled="{Binding CanDeleteSelectedEntry}" />
+          </StackPanel>
+          <Grid Grid.Row="1">
+            <TextBlock Text="No entries recorded yet."
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="#888888"
+                       Classes="caption"
+                       IsVisible="{Binding HasNoEntries}" />
+            <ListBox ItemsSource="{Binding TodaysEntries}"
+                     SelectedItem="{Binding SelectedEntry}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     IsVisible="{Binding HasEntries}">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <views:DailyEntryRowView />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="16">
+            <TextBlock Text="{Binding SelectedDayTotalDurationDisplay, StringFormat='Total: {0}'}" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding SelectedDayTotalRoundedDurationDisplay, StringFormat='Rounded: {0}'}" Foreground="#CCCCCC" />
+          </StackPanel>
+        </Grid>
+      </Border>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Reports">
+        <Border Padding="0">
+          <reporting:DailyReportView DataContext="{Binding ReportViewModel}" />
+        </Border>
+      </TabItem>
+    </TabControl>
+
+    <!-- Footer -->
+    <Border Grid.Row="2" Padding="12" BorderThickness="1,1,1,0" BorderBrush="#3A3A3A">
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+        <TextBlock Text="Ctrl+Q" FontWeight="SemiBold" />
+        <TextBlock Grid.Column="1" Text="Quit" Classes="caption" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

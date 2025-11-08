@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="TimeTracker"
+      Manufacturer="Northern Lights"
+      Language="1033"
+      Version="$(var.ProductVersion)"
+      UpgradeCode="{1C7E7502-5CCA-4AC0-B3E8-7249EAD3EC44}"
+      Scope="perMachine">
+
+    <SummaryInformation
+        Description="TimeTracker desktop client, CLI, and local API service"
+        Manufacturer="Northern Lights" />
+
+    <MajorUpgrade
+        Schedule="afterInstallValidate"
+        DowngradeErrorMessage="A newer version of TimeTracker is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="TimeTracker">
+        <Directory Id="DesktopDir" Name="Desktop" />
+        <Directory Id="CliDir" Name="Cli" />
+        <Directory Id="ApiDir" Name="Api" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="TimeTrackerDataDir" Name="TimeTracker" />
+    </StandardDirectory>
+
+    <Component Id="ProgramDataComponent" Directory="TimeTrackerDataDir" Guid="*">
+      <CreateFolder />
+    </Component>
+
+    <ComponentGroup Id="ApiServiceComponents">
+      <Component Id="TimeTrackerApiComponent" Directory="ApiDir" Guid="*">
+        <File Id="TimeTrackerApiExe" Source="$(var.ApiPublish)\TimeTracker.Api.exe" KeyPath="yes" />
+
+        <Environment Id="TimeTrackerDbPath"
+                     Name="TIMETRACKER_DB_PATH"
+                     Value="[TimeTrackerDataDir]timetracker.db"
+                     Action="set"
+                     System="yes" />
+
+        <Environment Id="TimeTrackerApiEnvironment"
+                     Name="ASPNETCORE_ENVIRONMENT"
+                     Value="Windows"
+                     Action="set"
+                     System="yes" />
+
+        <ServiceInstall Id="TimeTrackerApiService"
+                        Name="TimeTrackerApi"
+                        DisplayName="TimeTracker Local API"
+                        Description="Provides the local-only API used by the TimeTracker desktop application and CLI."
+                        Type="ownProcess"
+                        Start="auto"
+                        ErrorControl="normal"
+                        Account="NT AUTHORITY\LocalService"
+                        Arguments="--urls http://127.0.0.1:5058" />
+
+        <ServiceControl Id="TimeTrackerApiServiceControl"
+                         Name="TimeTrackerApi"
+                         Start="install"
+                         Stop="both"
+                         Remove="uninstall"
+                         Wait="yes" />
+      </Component>
+
+      <Component Id="TimeTrackerApiSettings" Directory="ApiDir" Guid="*">
+        <File Source="$(var.ApiPublish)\appsettings.json" />
+        <File Source="$(var.ApiPublish)\appsettings.Windows.json" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="MainFeature" Title="TimeTracker" Level="1" Absent="disallow">
+      <ComponentGroupRef Id="DesktopFiles" />
+      <ComponentGroupRef Id="CliFiles" />
+      <ComponentGroupRef Id="ApiServiceComponents" />
+      <ComponentRef Id="ProgramDataComponent" />
+    </Feature>
+  </Package>
+</Wix>
