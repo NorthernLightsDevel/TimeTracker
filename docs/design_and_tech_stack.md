@@ -1,28 +1,28 @@
 # Time Tracking System Design & Technology Stack
 
-This document summarizes the architectural approach and supporting technologies required to satisfy the cross-platform, always-on-top time tracking experience.
+This repository is organized so every host (desktop, CLI, Waybar, API) reuses the same services and persistence rules. The notes below capture the current stack and how the pieces fit together.
 
-## Core Technology Choices
+## Stack Snapshot
 
-- **Primary language and runtime**: C# on modern .NET (7 or 8) enables shared business logic across Windows, macOS, and Linux without sacrificing performance or tooling.[1]
-- **UI framework**: Avalonia UI provides a single XAML-based desktop interface, supports custom chrome-less windows, and offers a path to Wayland environments such as Hyprland.[1][2][3]
-- **Data layer**: SQLite delivers lightweight, file-based persistence with excellent cross-platform support via `Microsoft.Data.Sqlite`, keeping the door open for ORMs such as Entity Framework Core or micro-ORM alternatives.[4][5]
-- **Time tracking services**: Encapsulate timer control, rounding behavior, and persistence updates inside reusable C# services so the desktop UI, CLI tools, and status bar integrations operate on the same logic.
-- **Status bar integration**: Provide CLI entry points (e.g., `timetracker --status`, `timetracker --toggle`) that Waybar or similar bars can poll. Emit structured output (plain text or JSON) to avoid per-platform rewrites and allow scripted automation.[6]
-- **Tooling**: Use Visual Studio or VS Code with the Avalonia tooling extensions for development, and target self-contained .NET deployments per operating system to simplify distribution.
+- **Runtime**: .NET 9 with implicit usings, nullable disabled, and four-space indentation.
+- **UI**: Avalonia provides the cross-platform desktop shell with an always-on-top mini controller.
+- **Backend**: ASP.NET Core minimal API (`src/TimeTracker.Api`) exposes timer/project/customer endpoints over HTTP.
+- **Data**: Entity Framework Core talks to SQLite by default, with PostgreSQL supported through provider-specific migrations.
+- **Testing & tooling**: xUnit + coverlet + Testcontainers validate application services against SQLite/PostgreSQL; `scripts/manage-migrations.sh` keeps every provider in sync.
 
-## Architectural Notes
+## Architecture Highlights
 
-- Separate the solution into a core library, the Avalonia desktop shell, and optional integration utilities to keep UI-free logic testable and shareable.
-- Persist rounding configuration either globally or per project within the database so future features (CLI, Waybar module) can read the same settings.
-- Plan for IPC or database-driven signaling when toggling from the status bar, minimizing concurrency issues while keeping implementation simple for a single developer.
-- Package each platform build with the required native SQLite libraries and ensure the app stores its database in user-writable paths.
+- `TimeTracker.Domain` contains POCOs and DTOs only.
+- `TimeTracker.Application` holds the timer orchestration service (15-minute midpoint rounding), reporting queries, and repository abstractions.
+- `TimeTracker.Persistence` implements the repositories and `TimeTrackerDbContext`; provider-specific migrations live in the `SqliteMigrations` and `PgSqlMigrations` projects.
+- `TimeTracker.Infrastructure` centralizes host wiring (paths, provider selection, DI extensions).
+- `TimeTracker.Api` is the canonical host: it resolves the data directory, applies migrations on startup, and serves `/api/*`.
+- `TimeTracker.ApiClient` offers typed clients that match the repository/service interfaces so other hosts never deal with raw HTTP.
+- `TimeTracker.Desktop` and `TimeTracker.Cli` both depend on the API client, keeping all state changes funneled through the same API. The CLI powers Waybar and other automation hooks.
 
-## References
+## Operational Notes
 
-1. Avalonia cross-platform GUI support – works on Windows, macOS, and Linux. https://www.reddit.com/r/learncsharp/comments/12qovcq/is_avalonia_the_best_solution_for_cross_platform/
-2. Avalonia borderless window (no title bar) via window properties. https://stackoverflow.com/questions/65748375/avaloniaui-how-to-change-the-style-of-the-window-borderless-toolbox-etc
-3. Discussion of .NET MAUI desktop limitations. https://www.reddit.com/r/learncsharp/comments/12qovcq/is_avalonia_the_best_solution_for_cross_platform/
-4. .NET 8 WinForms Migration – System.Data.SQLite vs Microsoft.Data.Sqlite. https://learn.microsoft.com/en-us/answers/questions/2284458/net-8-winforms-migration-system-data-sqlite-vs-mic
-5. Cross-platform SQLite considerations. https://stackoverflow.com/questions/13016578/cross-platform-sqlite
-6. Waybar custom module reference. https://man.archlinux.org/man/extra/waybar/waybar-custom.5.en
+- Run the API (systemd service or `dotnet run --project src/TimeTracker.Api`) before launching the desktop app or CLI so migrations apply and a single process owns the database.
+- Desktop and CLI binaries are self-contained per platform; publish scripts live under `packaging/`.
+- The Waybar helper (`scripts/waybar-timetracker.sh`) shells out to the CLI, which in turn talks to the API, so no direct SQLite access or IPC hacks are required.
+- Use `scripts/manage-migrations.sh add <Name>` when schema changes need to touch SQLite and PostgreSQL together; review the generated files before committing.

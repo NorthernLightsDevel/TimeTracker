@@ -1,16 +1,12 @@
 # Time Tracking System Documentation
 
-This project is a hoby project I build with the help of Codex because I wanted a small and simple waybar time-tracker. The code is built using .NET 9 with Avalonia for UI, most of the Avalonia code is generated and "designed" by Codex, if anyone want to make better UI for it, feel free to create a pull-request.
-I have added packaging files for being able to build for Windows, Debian- and Arch- based distros, but since I currently don't have access to a windows computer, I'm not able to ensure the wix installer generation is correct.
-Contributions are welcome, I would like to expand the the time-tracking API to add multi-user support and login capabilities in the future. In addition, I have added PostgreSQL migrations already, to enable installing the backend on a server, and possibly making the clients configurable to communicate with an external server. But this is out of scope at the moment.
+This is a hobby project I built with the help of Codex because I wanted a small Waybar-friendly time tracker. The code targets .NET 9 with Avalonia for UI; most of that UI was generated or tweaked by Codex, so feel free to submit PRs if you want to polish it further. Packaging exists for Windows plus Debian- and Arch-based distros, though the WiX installer still needs validation on real Windows hardware. PostgreSQL migrations already live in the repo so the API can eventually back a multi-user deployment, but the current focus stays on local-first tracking.
 
 ## Document Map
 
-- [Overview](docs/overview.md) — high-level context and concluding goals for the time tracking application.
-- [Requirements](docs/requirements.md) — functional and non-functional expectations for the cross-platform tracker.
-- [Design & Technology Stack](docs/design_and_tech_stack.md) — architecture decisions, supporting technologies, and reference links.
-- [Development Timeline](docs/development_timeline.md) — week-by-week plan from project setup through post-MVP enhancements.
-- [Gap Analysis](docs/gap-analysis.md) — snapshot of the remaining gaps between the blueprint and the implemented system.
+- [Overview](docs/overview.md) — high-level context and project goals.
+- [Requirements](docs/requirements.md) — functional and non-functional expectations for the local-first workflow.
+- [Design & Technology Stack](docs/design_and_tech_stack.md) — condensed architecture notes and tech rationale.
 - [Waybar Integration](docs/waybar.md) — configure the custom Waybar module and CLI hooks.
 
 Each document can be maintained independently while keeping the shared vision consistent across platforms and integration touchpoints.

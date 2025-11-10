@@ -1,31 +1,29 @@
 # Waybar Integration
 
-This guide shows how to surface the current TimeTracker status inside Waybar and wire clicks to the CLI commands shipped with the project.
+The CLI already exposes everything Waybar needs, so the desktop app does not have to stay open to keep the bar updated. This guide shows how to connect Waybar to the CLI helper script and interpret the output.
 
 ## Prerequisites
 
-1. Install the CLI and desktop application so the `timetracker` binary is on your `$PATH` (see `packaging/arch/PKGBUILD` for Arch packages or run `dotnet publish src/TimeTracker.Cli` manually).
-2. Launch the desktop client once so the SQLite database is created at `~/.local/share/TimeTracker/timetracker.db`.
-3. Ensure the Waybar process can read and write that database; if you run Waybar under a different user, adjust permissions accordingly.
+1. **Run the local API**: start `TimeTracker.Api` (`dotnet run --project src/TimeTracker.Api` or enable the packaged systemd unit). It applies migrations and keeps the SQLite/PostgreSQL database ready for every client.
+2. **Install the CLI**: publish `src/TimeTracker.Cli` (or install a package) so a `timetracker` binary exists on your `$PATH`.
+3. **Optional desktop UI**: launch the Avalonia client if you want a visual timer, but Waybar only requires the API + CLI.
 
 ## Helper Script (`timetracker-waybar`)
 
-The repository ships `scripts/waybar-timetracker.sh`, a small wrapper that exposes the CLI to Waybar. Install it somewhere on your `$PATH`:
+`scripts/waybar-timetracker.sh` is a thin shell wrapper that speaks Waybar’s protocol and simply shells out to `timetracker` commands. Install it into your local bin directory:
 
 ```bash
 install -Dm755 scripts/waybar-timetracker.sh ~/.local/bin/timetracker-waybar
 ```
 
-The script understands:
+Supported verbs:
 
-- `status` (default) — emits Waybar-friendly JSON.
-- `toggle`, `pause`, `resume`, `stop` — forward to the matching CLI verbs.
-- `prompt-note` — pops up a note entry dialog via `rofi`, `wofi`, or `zenity`, then calls `timetracker comment`.
-- `project-menu` — queries the SQLite database for active projects, shows a drop-down picker, then runs `timetracker set <projectId>`.
+- `status` (default) — prints Waybar-friendly JSON by running `timetracker waybar`.
+- `toggle`, `pause`, `resume`, `stop`, `comment`, `set` — forward arguments to the CLI.
+- `prompt-note` — prompts via `rofi/wofi/zenity` and forwards the result to `timetracker comment`.
+- `project-menu` — calls `timetracker projects --json`, displays a picker, and executes `timetracker set <projectId>`.
 
-The helper now relies exclusively on the .NET CLI: `timetracker waybar` produces the Waybar JSON payload and `timetracker comment --show` returns the current note when prompting for updates, so no Python runtime is required.
-
-Set `TIMETRACKER_DB_PATH` if your database is not at the default `~/.local/share/TimeTracker/timetracker.db`.
+Set `TIMETRACKER_CUSTOMER_ID` if you want the project picker scoped to a single customer. No direct database access is required; everything flows through the API-hosted CLI.
 
 ## Waybar Module Example
 
@@ -81,29 +79,27 @@ Running `timetracker waybar` returns a concise payload for status bars:
 
 Key fields:
 
-- `text` — value shown in the bar (the module example renders `{icon} {elapsed} {project}`).
-- `tooltip` — multi-line summary displayed on hover.
-- `status`, `project`, `elapsed`, `notes` — raw values you can reuse in alternate formats or scripts.
-- `customer` — displayed alongside the project in the default `text` value so you can immediately spot the client you are tracking time against.
-- `alt`, `class`, `icon` — convenience fields for styling and glyph selection (icons assume a Nerd Font).
+- `text` — what Waybar renders (the example module formats `{icon} {text}`).
+- `tooltip` — multi-line summary on hover.
+- `status`, `project`, `customer`, `elapsed`, `notes` — raw values for custom scripts.
+- `alt`, `class`, `icon` — convenience hints for styling Nerd Font glyphs.
 
-If you need the full timer snapshot (active entry metadata, history, etc.), continue to call `timetracker status --json --pretty`.
+Use `timetracker status --json` if you need the full timer snapshot with history.
 
 ## Installation Steps Recap
 
-1. `dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true src/TimeTracker.Cli`
-2. Copy the published `TimeTracker.Cli` binary to a directory in your `$PATH` (for example `/usr/local/bin/timetracker`). The output bundles the .NET runtime, so no additional framework install is required.
-3. Install the helper via `install -Dm755 scripts/waybar-timetracker.sh ~/.local/bin/timetracker-waybar` (the Arch package installs this as `timetracker-waybar`).
-4. Repeat for the desktop client if desired: `dotnet publish ... src/TimeTracker.Desktop` and place it somewhere Waybar can invoke it.
-5. Reload Waybar: `pkill -SIGUSR2 waybar` or restart the session.
+1. Publish the API and CLI (`dotnet publish -c Release src/TimeTracker.Api`, same for `TimeTracker.Cli`) or install from the packages under `packaging/`.
+2. Ensure `timetracker` resolves on your `$PATH`.
+3. Install the helper script: `install -Dm755 scripts/waybar-timetracker.sh ~/.local/bin/timetracker-waybar`.
+4. Add the module config shown above to your Waybar `config` and CSS (optional: import `tools/waybar/timetracker.css`).
+5. Reload Waybar: `pkill -SIGUSR2 waybar`.
 
 ## Troubleshooting
 
-- **Permission denied**: Waybar runs as your user, but if the SQLite file lives on a different volume or has restrictive permissions, adjust ownership with `chown $USER:$USER ~/.local/share/TimeTracker -R`.
-- **Stale output**: Increase the module `interval` or call `timetracker-waybar status` manually to confirm the helper responds quickly. The CLI usually completes in under 50 ms once the database is warm.
-- **Timer not toggling**: Verify the CLI binary is executable (`chmod +x /usr/local/bin/timetracker`) and that another instance is not holding the database lock. The CLI retries transient SQLite locks up to five times.
-- **Missing icons**: Ensure the selected glyphs exist in your configured font (e.g., Nerd Fonts). Replace `format-icons` with plain text if needed.
-- **Project picker empty**: Confirm `sqlite3` is installed and that at least one active project exists. Archived projects are filtered out by default.
+- **API not running**: `timetracker-waybar status` prints an error blob if the API is offline. Start `TimeTracker.Api` and retry.
+- **Slow updates**: Reduce the module `interval` or run the helper manually to confirm CLI latency (<50 ms once warm).
+- **Project picker empty**: Ensure at least one active project exists; archived projects are filtered and the CLI mirrors that behavior.
+- **Missing icons**: Swap the Nerd Font glyphs in the module definition for plain text if your font lacks them.
 
 ## Quick Validation
 
