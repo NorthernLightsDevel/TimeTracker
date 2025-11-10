@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 SCRIPT_NAME=$(basename "$0")
 
 notify() {
@@ -199,17 +197,14 @@ has_active_session() {
         return 2
     fi
 
-    status=$(printf '%s\n' "$payload" | jq -r '.Status // empty' 2>/dev/null || true)
+    status=$(printf '%s\n' "$payload" | jq -r '.Status' 2>/dev/null || true)
 
     case "$status" in
-        Running|Paused)
-            return 0
-            ;;
         Idle)
             return 1
             ;;
         *)
-            return 2
+            return 0
             ;;
     esac
 }
