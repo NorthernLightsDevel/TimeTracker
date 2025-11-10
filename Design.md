@@ -40,15 +40,23 @@ TimeTracker.sln
   src/
     TimeTracker.Domain/            # POCOs only
     TimeTracker.Application/       # Services, policies (no EF/UI)
-    TimeTracker.Persistence/       # EF Core DbContext (no provider packages)
+    TimeTracker.Persistence/       # EF Core DbContext + repositories
     TimeTracker.Persistence.SqliteMigrations/
     TimeTracker.Persistence.PgSqlMigrations/
-    TimeTracker.Desktop/           # Avalonia app (uses SQLite provider)
-    TimeTracker.Web/               # Kestrel site on localhost (provider by config)
+    TimeTracker.Infrastructure/    # Host/DI helpers shared across entry points
+    TimeTracker.ApiClient/         # Typed HTTP client for Desktop + CLI
+    TimeTracker.Api/               # Minimal API host (SQLite/PostgreSQL selectable)
+    TimeTracker.Cli/               # Command-line interface (Waybar + scripting)
+    TimeTracker.Desktop/           # Avalonia app consuming the API client
+  tests/
+    TimeTracker.Application.Tests/ # Service/unit + provider harness
+  tools/, packaging/, docs/, scripts/
 ```
 
-* **Persistence** exposes `AppDbContext` with model; provider is selected in **startup** via `UseSqlite`/`UseNpgsql` and migrations assembly pointing to the respective migrations project.
-* **Desktop** embeds or starts a **Web host** on `http://127.0.0.1:5187` for listing time and basic JSON endpoints.
+* **Persistence** exposes `TimeTrackerDbContext`; provider is selected via shared infrastructure extensions that set `UseSqlite`/`UseNpgsql` with migrations pointing to the provider projects.
+* **TimeTracker.Api** runs as a background service (or systemd unit) that owns the DbContext lifetime, applies migrations, and exposes timer/project/customer endpoints under `/api/*`.
+* **TimeTracker.ApiClient** wraps the HTTP endpoints behind repository/service interfaces so the **Desktop** app and **CLI** share the same orchestration surface without duplicating HTTP logic.
+* **Desktop** and **CLI** processes operate purely through the API client, so both experiences stay in sync with the canonical timer session managed by the API.
 
 ---
 
