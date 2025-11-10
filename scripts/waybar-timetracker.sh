@@ -192,6 +192,28 @@ JSON
     printf '%s\n' "$payload"
 }
 
+has_active_session() {
+    local payload status
+
+    if ! payload=$(timetracker status --json 2>/dev/null); then
+        return 2
+    fi
+
+    status=$(printf '%s\n' "$payload" | jq -r '.Status // empty' 2>/dev/null || true)
+
+    case "$status" in
+        Running|Paused)
+            return 0
+            ;;
+        Idle)
+            return 1
+            ;;
+        *)
+            return 2
+            ;;
+    esac
+}
+
 command="${1:-status}"
 shift || true
 
@@ -200,7 +222,13 @@ case "$command" in
         format_status
         ;;
     toggle)
-        run_cli toggle
+        has_active_session
+        session_state=$?
+        if [[ $session_state -eq 1 ]]; then
+            select_project
+        else
+            run_cli toggle
+        fi
         ;;
     pause)
         run_cli pause
