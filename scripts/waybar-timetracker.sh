@@ -239,6 +239,19 @@ case "$command" in
             run_cli toggle
         fi
         ;;
+    switch)
+        has_active_session
+        session_state=$?
+        if [[ $session_state -eq 0 ]]; then
+            run_cli stop
+        fi
+        select_project
+        has_active_session
+        session_state=$?
+        if [[ $session_state -eq 0 ]]; then
+            set_note_if_blank
+        fi
+        ;;
     pause)
         run_cli pause
         ;;
@@ -261,7 +274,7 @@ case "$command" in
         run_cli set "$@"
         ;;
     *)
-        printf 'Usage: %s [status|toggle|pause|resume|stop|prompt-note|project-menu|comment|set]\n' "$SCRIPT_NAME" >&2
+        printf 'Usage: %s [status|toggle|switch|pause|resume|stop|prompt-note|project-menu|comment|set]\n' "$SCRIPT_NAME" >&2
         exit 1
         ;;
 esac

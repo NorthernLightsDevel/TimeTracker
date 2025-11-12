@@ -19,7 +19,8 @@ install -Dm755 scripts/waybar-timetracker.sh ~/.local/bin/timetracker-waybar
 Supported verbs:
 
 - `status` (default) — prints Waybar-friendly JSON by running `timetracker waybar`.
-- `toggle`, `pause`, `resume`, `stop`, `comment`, `set` — forward arguments to the CLI.
+- `toggle`, `pause`, `resume`, `stop`, `comment`, `set` — forward arguments to the CLI. `toggle` also prompts for a note (reuse of `prompt-note`) whenever a new session starts and no comment exists yet, so the note field never stays blank by accident.
+- `switch` — stops the active session if necessary, opens the project picker, switches to the selected project, and then prompts for a note when the new timer starts with an empty comment.
 - `prompt-note` — prompts via `rofi/wofi/zenity` and forwards the result to `timetracker comment`.
 - `project-menu` — calls `timetracker projects --json`, displays a picker, and executes `timetracker set <projectId>`.
 

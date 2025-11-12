@@ -1,6 +1,6 @@
 pkgbase=timetracker
 pkgname=timetracker
-pkgver=9d4ef53
+pkgver=bea37b4
 pkgrel=1
 arch=("x86_64")
 url="https://github.com/NorthernLightsDevel/TimeTracker"
