@@ -111,6 +111,15 @@ set_note() {
     fi
 }
 
+set_note_if_blank() {
+    local current
+    current=$(current_note || true)
+
+    if [[ -z "${current:-}" ]]; then
+        set_note
+    fi
+}
+
 select_project() {
     local raw options selection project_id customer_id
     local cli_args=(projects --json)
@@ -221,6 +230,11 @@ case "$command" in
         session_state=$?
         if [[ $session_state -eq 1 ]]; then
             select_project
+            has_active_session
+            session_state=$?
+            if [[ $session_state -eq 0 ]]; then
+                set_note_if_blank
+            fi
         else
             run_cli toggle
         fi
